@@ -1,0 +1,43 @@
+# Core orchestration
+langchain==0.3.25
+langchain-community==0.3.24
+langchain-pinecone==0.2.13
+langchain-cohere==0.4.4
+
+# Vector store & reranking
+pinecone>=7.3.0
+cohere==5.12.0
+
+# Knowledge graph
+neo4j==5.25.0
+
+# Observability & evaluation
+langsmith==0.3.45
+ragas==0.2.6
+datasets>=3.1.0
+langchain-groq>=0.3.8  # Ultra-fast Groq Llama-3.3-70b RAGAS judge
+groq>=0.37.0
+
+# Adaptive graph embeddings
+torch==2.6.0
+torch-geometric>=2.7.0
+networkx==3.4.2
+numpy>=2.2.0
+
+# API
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.17
+pydantic>=2.9.2
+pydantic-settings>=2.10.1
+slowapi==0.1.9
+stripe>=15.4.0  # Stripe Checkout subscriptions for paid plans
+
+# Document loading & chunking
+pypdf==5.1.0
+python-docx==1.1.2
+tiktoken>=0.8.0  # token-aware chunk sizing (cl100k_base proxy)
+
+# Testing
+pytest==8.3.3
+httpx>=0.27.0  # required by FastAPI's TestClient

@@ -1,0 +1,50 @@
+[
+  {
+    "question": "How does GraphRAG improve over classic vector-only RAG?",
+    "ground_truth": "It extracts entities and relationships into a Neo4j knowledge graph and expands retrieval along graph edges, surfacing related chunks that pure vector similarity misses."
+  },
+  {
+    "question": "What role does Cohere Rerank play in the pipeline?",
+    "ground_truth": "Cohere Rerank is a cross-encoder that reorders retrieved candidates by jointly reading the query and each passage, giving a more accurate final ranking than raw vector scores."
+  },
+  {
+    "question": "How does the adaptive loop use RAGAS feedback?",
+    "ground_truth": "RAGAS scores (faithfulness, relevancy) become a reward signal that reweights graph edges: edges on paths that produced good answers are strengthened and weak ones decay, so the retriever learns which relationships to follow."
+  },
+  {
+    "question": "What is credit assignment in the context of this pipeline's adaptive loop?",
+    "ground_truth": "Only graph edges whose expanded chunks survived reranking into the final answer context receive reward; edges whose chunks were surfaced but reranked away earn nothing, so attribution follows what actually reached the LLM."
+  },
+  {
+    "question": "Why does the pipeline dedupe documents before re-ingesting them?",
+    "ground_truth": "Re-uploading the same source would otherwise accumulate duplicate chunks in the vector index and duplicate structure in the graph, contaminating retrieval and every downstream quality metric."
+  },
+  {
+    "question": "What is the purpose of a rerank relevance floor?",
+    "ground_truth": "Passages scoring below a minimum cross-encoder relevance are dropped instead of being passed to generation, letting the model honestly answer that context is insufficient rather than hallucinating from weak passages."
+  },
+  {
+    "question": "Why are entity names canonicalized before being merged into the knowledge graph?",
+    "ground_truth": "Without canonicalization, surface variants like Apple, apple, and APPLE become separate nodes, fragmenting the graph and diluting edge rewards across duplicates."
+  },
+  {
+    "question": "What does multi-hop graph expansion add over single-hop expansion?",
+    "ground_truth": "It follows chains of relationships two or more edges deep, surfacing chunks connected through intermediate entities, with path scores computed as the product of edge weights so long weak chains rank below strong direct links."
+  },
+  {
+    "question": "What does the graph lift metric measure?",
+    "ground_truth": "It is the difference in RAGAS composite score between answering with graph expansion enabled and disabled on the same questions, measuring the graph's actual marginal contribution to answer quality."
+  },
+  {
+    "question": "Why do untouched graph edge weights decay toward a neutral value?",
+    "ground_truth": "Edges that no evaluation traverses would otherwise stay frozen at whatever weight early runs assigned; decaying them toward 1.0 keeps the graph plastic so it forgets stale connections."
+  },
+  {
+    "question": "How does human thumbs feedback integrate with the adaptive loop?",
+    "ground_truth": "A thumbs up or down becomes a per-edge reward of 1.0 or 0.0 over the answer's surviving edges and is fed into the same edge reweighting mechanism used by RAGAS evaluation, adding online human feedback with no new infrastructure."
+  },
+  {
+    "question": "Why does ingestion run as a background job instead of synchronously?",
+    "ground_truth": "Entity extraction makes one LLM call per chunk, so large documents would block the request for minutes; the ingest endpoint returns a job id immediately and the pipeline runs in the background with a pollable status."
+  }
+]

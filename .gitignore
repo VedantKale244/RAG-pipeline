@@ -1,0 +1,36 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+ENV/
+env/
+
+# Data & Database storage
+.data/
+*.sqlite
+*.db
+
+# Next.js Build output
+frontend/.next/
+frontend/out/
+
+# Python cache & logs
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+.pytest_cache/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Dedicated Private Admin Dashboard (DO NOT PUSH TO GITHUB)
+admin-dashboard/

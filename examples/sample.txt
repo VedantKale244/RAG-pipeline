@@ -1,0 +1,26 @@
+Neuro-Adaptive GraphRAG: A Primer
+
+Retrieval-Augmented Generation (RAG) grounds a language model's answers in an external
+corpus. A classic RAG pipeline embeds documents into a vector store such as Pinecone,
+retrieves the nearest chunks for a query, and asks the model to answer using only those
+chunks. This reduces hallucination but has a blind spot: pure vector similarity misses
+facts that are related through entities rather than through surface wording.
+
+GraphRAG addresses this. During ingestion, a language model extracts entities (people,
+organizations, concepts) and the relationships between them, materializing a knowledge
+graph in Neo4j. At query time the retriever first does a dense search, then expands along
+graph edges to pull in chunks that mention connected entities. A question about "the
+adaptive loop" can therefore surface passages about "RAGAS feedback" even when the two
+never appear in the same sentence.
+
+Cohere Rerank sits after retrieval. It is a cross-encoder that jointly reads the query and
+each candidate passage, producing a far more accurate relevance ordering than the original
+vector scores. Only the top reranked passages are handed to the generator.
+
+The neuro-adaptive part is the feedback loop. A GraphSAGE model learns embeddings over the
+knowledge graph, and RAGAS — which measures faithfulness, answer relevancy, context
+precision, and context recall — provides a reward signal. Edges that lie on retrieval
+paths which produced faithful, relevant answers are strengthened; edges on paths that led
+to weak answers decay. Because the retriever traverses the graph by edge weight, the
+system literally learns which relationships are worth following. LangSmith traces every
+step so the whole process is observable.
