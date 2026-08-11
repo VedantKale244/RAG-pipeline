@@ -303,6 +303,50 @@ class CohereEmbedding(EmbeddingProvider):
         return res
 
 
+class FallbackEmbeddingProvider(EmbeddingProvider):
+    """Primary embedding provider with automatic failover to secondary provider (e.g. NVIDIA NIM)."""
+
+    def __init__(self, primary: EmbeddingProvider, secondary: EmbeddingProvider | None = None):
+        self.primary = primary
+        self.secondary = secondary
+
+    @property
+    def provider_name(self) -> str:
+        return self.primary.provider_name
+
+    @property
+    def dimension(self) -> int:
+        return self.primary.dimension
+
+    def embed_query(self, text: str) -> list[float]:
+        try:
+            return self.primary.embed_query(text)
+        except EmbeddingUnavailable as exc:
+            if self.secondary:
+                logger.warning(
+                    "Primary embedding provider '%s' failed (%s). Failing over to secondary provider '%s'.",
+                    self.primary.provider_name,
+                    exc,
+                    self.secondary.provider_name,
+                )
+                return self.secondary.embed_query(text)
+            raise
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        try:
+            return self.primary.embed_documents(texts)
+        except EmbeddingUnavailable as exc:
+            if self.secondary:
+                logger.warning(
+                    "Primary embedding provider '%s' failed (%s). Failing over to secondary provider '%s'.",
+                    self.primary.provider_name,
+                    exc,
+                    self.secondary.provider_name,
+                )
+                return self.secondary.embed_documents(texts)
+            raise
+
+
 # Backward compatibility aliases
 OllamaEmbeddingProvider = LocalEmbedding
 NvidiaEmbeddingProvider = NvidiaEmbedding
@@ -318,10 +362,13 @@ def get_embedding_provider(name: str | None = None) -> EmbeddingProvider:
     elif provider_type == "nvidia":
         provider = NvidiaEmbedding()
     elif provider_type == "cohere":
-        provider = CohereEmbedding()
+        primary = CohereEmbedding()
+        secondary = NvidiaEmbedding() if settings.nvidia_api_key else None
+        provider = FallbackEmbeddingProvider(primary=primary, secondary=secondary)
     else:
         raise ValueError(f"Unknown embedding_provider '{provider_type}'. Supported: local (ollama), nvidia, cohere")
 
     # Fail-fast validation against target index dimension
     provider.validate_dimension(settings.cohere_embed_dim)
     return provider
+

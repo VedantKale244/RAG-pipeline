@@ -13,6 +13,7 @@ from app.core.embedding_provider import (
     DimensionMismatchError,
     EmbeddingProvider,
     EmbeddingUnavailable,
+    FallbackEmbeddingProvider,
     LocalEmbedding,
     NvidiaEmbedding,
     NvidiaEmbeddingProvider,
@@ -103,7 +104,7 @@ class TestProviderFactoryAndSwitching:
         monkeypatch.setattr(settings, "embedding_provider", "cohere")
         provider = get_embedding_provider()
         assert provider.provider_name == "cohere"
-        assert isinstance(provider, CohereEmbedding)
+        assert isinstance(provider, (CohereEmbedding, FallbackEmbeddingProvider))
 
     def test_factory_instantiates_local(self, monkeypatch):
         monkeypatch.setattr(settings, "embedding_provider", "local")
@@ -154,3 +155,26 @@ class TestProviderErrorHandling:
         with pytest.raises(EmbeddingUnavailable) as exc:
             provider.embed_query("test query")
         assert "NVIDIA API key missing" in str(exc.value)
+
+    def test_fallback_embedding_provider_fails_over_to_secondary(self):
+        primary = MagicMock()
+        primary.provider_name = "cohere"
+        primary.dimension = 1024
+        primary.embed_query.side_effect = EmbeddingUnavailable("Cohere quota exhausted")
+        primary.embed_documents.side_effect = EmbeddingUnavailable("Cohere quota exhausted")
+
+        secondary = MagicMock()
+        secondary.provider_name = "nvidia"
+        secondary.dimension = 1024
+        secondary.embed_query.return_value = [0.1] * 1024
+        secondary.embed_documents.return_value = [[0.1] * 1024]
+
+        fallback = FallbackEmbeddingProvider(primary=primary, secondary=secondary)
+        vec = fallback.embed_query("test query")
+        assert vec == [0.1] * 1024
+        secondary.embed_query.assert_called_once_with("test query")
+
+        docs_vec = fallback.embed_documents(["doc1"])
+        assert docs_vec == [[0.1] * 1024]
+        secondary.embed_documents.assert_called_once_with(["doc1"])
+
