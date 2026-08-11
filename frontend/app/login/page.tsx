@@ -193,7 +193,7 @@ export default function AuthPage() {
           </span>
         </Link>
         <h2 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          {mode === "login" ? "Sign in to your account" : step === "otp" ? "Verify Email with OTP" : "Create secure account"}
+          Sign in to your account
         </h2>
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
           Enterprise Graph Retrieval &amp; Multi-Factor Authentication
@@ -203,21 +203,6 @@ export default function AuthPage() {
       {/* Main Card */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="card px-6 py-8 sm:px-8 space-y-6 bg-white shadow-sm border border-gray-200 rounded-2xl">
-          
-          {/* Mode Switcher */}
-          <div className="flex rounded-xl p-1 gap-1" style={{ background: '#E4E6E0', border: '1px solid #D4D7D1' }}>
-            {(['login', 'signup'] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => { setMode(m); setStep("form"); setErr(""); setSuccess(""); setDevOtp(null); }}
-                className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-150 ${mode === m ? 'tab-active' : ''}`}
-                style={mode !== m ? { color: 'var(--text-muted)' } : {}}
-              >
-                {m === 'login' ? 'Sign In' : 'Create Account'}
-              </button>
-            ))}
-          </div>
 
           {/* ── Google Sign-In Button (real Firebase OAuth) ── */}
           {step === "form" && (
