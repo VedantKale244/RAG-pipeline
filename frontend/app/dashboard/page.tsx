@@ -278,12 +278,6 @@ export default function Home() {
               <ShieldCheck className="h-3.5 w-3.5" style={{ color: '#028090' }} />
               Isolated tenants · Encrypted at rest
             </div>
-            {!currentUser && (
-              <Link href="/login" className="btn text-xs py-2 px-4" style={{ background: 'linear-gradient(135deg, #028090, #0F4C81)' }}>
-                <Sparkles className="h-3.5 w-3.5" />
-                Get Started Free
-              </Link>
-            )}
           </div>
         </div>
       </div>
